@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/pkmngo-odi/pogo/auth/google"
 	"github.com/pkmngo-odi/pogo/auth/ptc"
@@ -36,18 +37,19 @@ func (u *UnknownProvider) GetAccessToken() string {
 
 // NewProvider creates a new provider based on the provider identifier
 func NewProvider(provider, username, password string) (Provider, error) {
+	log.Printf("cououc")
 	pg, ok := providerFactory[provider]
 	if ok == false {
 		return &UnknownProvider{}, fmt.Errorf("Provider \"%s\" is not supported", provider)
 	}
-	return pg(username, password)
+	return pg(username, password), nil
 }
 
-type ProviderGenerator func(string, string) *Provider
+type ProviderGenerator func(string, string) Provider
 
 var providerFactory = make(map[string]ProviderGenerator)
 
 func init() {
-	providerFactory["ptc"] = ptc.NewProvider
-	providerFactory["google"] = google.NewProvider
+	providerFactory["ptc"] = func(u, p string) Provider { return ptc.NewProvider(u, p) }
+	providerFactory["google"] = func(u, p string) Provider { return google.NewProvider(u, p) }
 }
